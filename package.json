@@ -1,0 +1,21 @@
+{
+  "name": "jaldrishti",
+  "version": "1.0.0",
+  "description": "AI/ML-Enabled Real-Time FHTC Functionality Monitoring & Predictive Water Grid Platform under Jal Jeevan Mission",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "jal-jeevan-mission",
+    "fhtc-monitoring",
+    "ai-ml",
+    "smart-water-grid",
+    "sujal-gaon",
+    "rural-water-supply",
+    "iot-telemetry"
+  ],
+  "author": "JalDrishti Innovation Team",
+  "license": "MIT"
+}

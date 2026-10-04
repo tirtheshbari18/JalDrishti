@@ -1,0 +1,86 @@
+[
+  {
+    "id": "ALT-AI-2026-904",
+    "type": "Pipeline Burst / Major Leakage",
+    "typeHindi": "मुख्य पाइपलाइन फटने / भारी रिसाव की चेतावनी",
+    "severity": "CRITICAL",
+    "village": "Rampur GP",
+    "location": "South Ward Tail Line (SEG-04, Chainage 340m)",
+    "timestamp": "2026-10-04T07:42:15+05:30",
+    "aiModel": "Hydraulic Gradient Wavelet & Flow Mass Balance",
+    "confidence": 94.6,
+    "metrics": {
+      "upstreamFlowLPS": 3.4,
+      "downstreamFlowLPS": 0.6,
+      "headLossSurgeBar": 0.65,
+      "estimatedWaterLossRateLPH": 420,
+      "affectedFHTCCount": 14
+    },
+    "diagnosis": "Rapid hydraulic depression detected downstream of Node 4 with mass-balance divergence exceeding 78%. Rupture confirmed.",
+    "action": "Immediate isolation of Sluice Valve #2. Work order WO-RJ-2026-441 auto-dispatched to Rampur maintenance team.",
+    "status": "Active Unacknowledged",
+    "isResolved": false
+  },
+  {
+    "id": "ALT-AI-2026-898",
+    "type": "Terminal Pressure Drop Below JJM Standard",
+    "typeHindi": "टर्मिनल दबाव 7 मीटर हेड मानक से कम",
+    "severity": "WARNING",
+    "village": "Rampur GP",
+    "location": "Ward 2 Tail End (FHTC-005, FHTC-006)",
+    "timestamp": "2026-10-04T06:30:00+05:30",
+    "aiModel": "Random Forest LPCD Adequacy Classifier",
+    "confidence": 88.2,
+    "metrics": {
+      "terminalHeadMeters": 3.1,
+      "jjmStandardHeadMeters": 7.0,
+      "deliveredLPCD": 40.5,
+      "jjmTargetLPCD": 55.0
+    },
+    "diagnosis": "Head loss accumulation over 1.2km branch. High demand draw at junction causing tail starvation.",
+    "action": "Adjust throttling on North Ward valve to redistribute hydraulic gradient.",
+    "status": "Investigating",
+    "isResolved": false
+  },
+  {
+    "id": "ALT-AI-2026-882",
+    "type": "Predictive Failure: Pump Motor Bearing Cavitation",
+    "typeHindi": "पूर्वानुमान: बोरवेल पंप मोटर बेयरिंग खराब होने का जोखिम",
+    "severity": "PREDICTIVE_HIGH",
+    "village": "Rampur GP",
+    "location": "Deep Borewell Source #1 Pump House",
+    "timestamp": "2026-10-04T05:15:20+05:30",
+    "aiModel": "LSTM Vibration & Thermal Anomaly Forecast",
+    "confidence": 91.4,
+    "metrics": {
+      "vibrationMMs": 4.8,
+      "baselineVibrationMMs": 1.8,
+      "motorCurrentAmps": 22.4,
+      "predictedFailureWindowHours": 36
+    },
+    "diagnosis": "High-frequency harmonic vibrations indicate runner impeller cavitation and front bearing wear. 78% probability of catastrophic stoppage within 36 hours.",
+    "action": "Preventive bearing replacement and impeller clearance inspection scheduled. SWSM notified.",
+    "status": "Scheduled Maintenance",
+    "isResolved": false
+  },
+  {
+    "id": "ALT-AI-2026-870",
+    "type": "Water Quality: Residual Chlorine Dissipation Risk",
+    "typeHindi": "जल गुणवत्ता: क्लोरीन स्तर में गिरावट का जोखिम",
+    "severity": "WARNING",
+    "village": "Chandrapur GP",
+    "location": "Overhead Tank WTP-02 Feeder",
+    "timestamp": "2026-10-03T21:10:00+05:30",
+    "aiModel": "Chlorine Decay Kinetic Model",
+    "confidence": 85.0,
+    "metrics": {
+      "chlorineMgL": 0.22,
+      "safeThresholdMinMgL": 0.20,
+      "waterTempCelsius": 29.5
+    },
+    "diagnosis": "Elevated tank ambient temperature accelerating residual chlorine decay. Water at dead ends risk falling below 0.2 mg/L minimum.",
+    "action": "Automated dosing pump frequency increased by 15% to maintain 0.40 mg/L at outlet.",
+    "status": "Auto-Compensated",
+    "isResolved": true
+  }
+]

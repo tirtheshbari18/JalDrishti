@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JalDrishti (जलदृष्टि) - Advanced AI FHTC Water Grid Intelligence | Jal Jeevan Mission</title>
+  <meta name="description" content="AI/ML-enabled continuous monitoring platform for Functional Household Tap Connections (FHTCs), predictive failure detection, and community participation under Jal Jeevan Mission, Government of India.">
+
+  <!-- Clean Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Leaflet GIS Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Application Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/mobile-citizen.css">
+
+  <style>
+    .leaflet-popup-content-wrapper {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body class="mode-simple">
+
+  <!-- =========================================================================
+       CLEAN, MODERN, CITIZEN-FRIENDLY HEADER
+       ========================================================================= -->
+  <header class="app-header">
+    <div class="header-main-bar">
+      <!-- Left: Logo & National Branding -->
+      <div class="brand-wrapper">
+        <div class="brand-emblem-badge">
+          <svg class="emblem-icon" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="#0284c7" stroke-width="2"/>
+            <path d="M20 6C20 6 12 18 12 24C12 28.4183 15.5817 32 20 32C24.4183 32 28 28.4183 28 24C28 18 20 6 20 6Z" fill="#0284c7"/>
+            <circle cx="20" cy="24" r="3" fill="#ffffff"/>
+            <path d="M8 40H32" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12 44H28" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <div class="water-logo-mark">💧</div>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-name">
+            <span style="color:#0284c7; font-weight:800;">जलदृष्टि</span>
+            <span style="font-size:1rem; font-weight:600; color:var(--text-secondary);">(JalDrishti)</span>
+          </div>
+          <div class="brand-tag">
+            जल जीवन मिशन • हर घर नल से जल निगरानी प्रणाली
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Village Location Selector -->
+      <div class="location-selector-chip" onclick="openLocationModal()" title="गांव बदलें (Change Village)">
+        <span style="font-size:1.1rem;">📍</span>
+        <div>
+          <span class="location-name" id="currentLocationLabel">रामपुर ग्राम पंचायत, जयपुर</span>
+          <span class="location-sub" style="font-weight:700; color:var(--status-functional);"> • सुजल गांव प्रमाणित (SG-1042)</span>
+        </div>
+        <span style="font-size:0.85rem; color:var(--text-muted); margin-left:4px;">▾</span>
+      </div>
+
+      <!-- Right: Action Controls (Clean, Simple, Uncluttered) -->
+      <div class="header-actions-bar">
+        <!-- Live Status Badge -->
+        <div class="status-pill" title="आज की स्थिति">
+          <span class="pulse-dot"></span>
+          <span id="headerQuickStatus" style="font-weight:700;">🟢 पानी चालू (328/340 घर)</span>
+        </div>
+
+        <!-- Language Button -->
+        <button id="langToggleBtn" class="btn-header-pill" style="border-radius:var(--radius-full); font-weight:700;" title="भाषा बदलें (Switch Language)">
+          🌐 हिन्दी / Eng
+        </button>
+
+        <!-- View Mode Switch: Simple (Default) vs Engineer Mode -->
+        <div class="view-mode-switch" title="सरल दृश्य या विस्तृत इंजीनियर मोड चुनें">
+          <button id="btnModeSimple" class="mode-btn active" onclick="setViewMode('simple')">
+            <span>🟢</span>
+            <span>सरल (Citizen)</span>
+          </button>
+          <button id="btnModeDetailed" class="mode-btn" onclick="setViewMode('detailed')">
+            <span>⚙️</span>
+            <span>इंजीनियर (Engineer)</span>
+          </button>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="btn-icon-round" title="दिन / रात मोड (Light / Dark)">
+          🌙
+        </button>
+      </div>
+    </div>
+
+    <!-- 5 Clean, Meaningful Navigation Tabs with Clear Icons & Plain Text -->
+    <div class="nav-tabs-bar">
+      <div class="nav-tab-list">
+        <button class="nav-tab-btn active" data-tab="dashboard">
+          <span style="font-size:1.15rem;">🏠</span>
+          <span data-i18n="navDashboard">आज का पानी (Today's Water)</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="gis">
+          <span style="font-size:1.15rem;">🚰</span>
+          <span data-i18n="navGis">गांव के नल व नक्शा (Village Taps)</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="citizen">
+          <span style="font-size:1.15rem;">🚨</span>
+          <span data-i18n="navCitizen">शिकायत व सहायता (Complaints & Help)</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="wqms">
+          <span style="font-size:1.15rem;">🧪</span>
+          <span data-i18n="navWqms">पानी की जांच (Water Quality)</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="ai">
+          <span style="font-size:1.15rem;">⚙️</span>
+          <span data-i18n="navAi">इंजीनियर व अधिकारी (Engineer Mode)</span>
+          <span class="tab-badge" id="aiTabBadge">2 अलर्ट</span>
+        </button>
+      </div>
+
+      <div class="nav-right-meta">
+        <button class="btn btn-secondary btn-sm" onclick="window.CertificateModal.open()" style="padding:6px 12px; font-size:0.8rem; font-weight:700; border-radius:var(--radius-full); background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d;">
+          🏅 हर घर जल प्रमाण पत्र
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MAIN APPLICATION VIEWPORT
+       ========================================================================= -->
+  <main class="main-container">
+
+    <!-- =======================================================================
+         TAB 1: HOME & OVERVIEW (सरल एवं समझने में आसान दृश्य)
+         ======================================================================= -->
+    <section id="tab-dashboard" class="tab-pane active">
+
+      <!-- Friendly Big Status Banner (सरल भाषा में गांव की स्थिति) -->
+      <div class="welcome-health-banner">
+        <div class="welcome-text">
+          <span style="font-size:1.6rem;">💧</span>
+          <div>
+            <strong style="font-size:1.15rem;">रामपुर में आज पानी की आपूर्ति सामान्य है (Water Supply is Normal)</strong>
+            <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:2px;">
+              गांव के 328 घरों में नियमित पेयजल आपूर्ति की जा रही है। पानी 100% शुद्ध और पीने के लिए सुरक्षित है।
+            </div>
+          </div>
+        </div>
+        <div class="quick-stats-strip">
+          <span>टंकी: <strong>78% भरी हुई (98,000 L)</strong></span>
+          <span>•</span>
+          <span>पानी: <strong style="color:var(--status-functional);">100% शुद्ध (Safe)</strong></span>
+          <span>•</span>
+          <span>आपूर्ति: <strong>सुबह व शाम (On Time)</strong></span>
+        </div>
+      </div>
+
+      <!-- 4 Simple, Friendly Everyday Cards (सभी के लिए आसान) -->
+      <div class="grid-cols-4">
+        <!-- Card 1: Working Taps -->
+        <div class="kpi-card" style="border-top:4px solid var(--water-blue);">
+          <div class="kpi-top">
+            <span class="kpi-label">नल में पानी (Taps Working)</span>
+            <div class="kpi-icon-wrap kpi-icon-blue">🚰</div>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">328</span>
+              <span class="kpi-unit">/ 340 घर (96.5%)</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>🟢 328 घरों में पानी चालू</span>
+              <span style="color:var(--text-muted); font-size:0.75rem;">• 10 धीमा • 2 में कार्य</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">गांव के 96.5% घरों में पर्याप्त पानी आ रहा है</div>
+        </div>
+
+        <!-- Card 2: Supply Timings -->
+        <div class="kpi-card" style="border-top:4px solid var(--status-functional);">
+          <div class="kpi-top">
+            <span class="kpi-label">पानी आने का समय (Water Timing)</span>
+            <div class="kpi-icon-wrap kpi-icon-green">⏰</div>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span class="kpi-value" style="font-size:1.45rem; color:var(--status-functional);">सुबह व शाम</span>
+            </div>
+            <div class="kpi-trend trend-up" style="flex-direction:column; align-items:flex-start; gap:2px;">
+              <div>🌅 <strong>सुबह:</strong> 06:00 से 08:30 बजे</div>
+              <div>🌇 <strong>शाम:</strong> 17:30 से 19:30 बजे</div>
+            </div>
+          </div>
+          <div class="kpi-subtext">आज दोनों समय पूर्ण दबाव के साथ जलापूर्ति</div>
+        </div>
+
+        <!-- Card 3: Village Tank -->
+        <div class="kpi-card" style="border-top:4px solid var(--water-cyan);">
+          <div class="kpi-top">
+            <span class="kpi-label">पानी की टंकी (Village Tank)</span>
+            <div class="kpi-icon-wrap kpi-icon-cyan">🏛️</div>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="kpiOhtText" class="kpi-value">78%</span>
+              <span class="kpi-unit">98,000 / 125,000 L</span>
+            </div>
+            <div class="progress-track" style="margin: 6px 0;">
+              <div class="progress-fill fill-cyan" style="width: 78.4%;"></div>
+            </div>
+          </div>
+          <div class="kpi-subtext">🟢 आज पूरे गांव के लिए भरपूर पानी उपलब्ध है</div>
+        </div>
+
+        <!-- Card 4: Water Purity -->
+        <div class="kpi-card" style="border-top:4px solid var(--status-purple);">
+          <div class="kpi-top">
+            <span class="kpi-label">पानी की शुद्धता (Water Quality)</span>
+            <div class="kpi-icon-wrap kpi-icon-purple">🧪</div>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span class="kpi-value" style="color:var(--status-functional); font-size:1.6rem;">100% शुद्ध</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>✓ पीने के लिए पूरी तरह सुरक्षित (Safe)</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">जल सखियों द्वारा जांच में सुरक्षित प्रमाणित</div>
+        </div>
+      </div>
+
+      <!-- 3 Big, Friendly, Easy-To-Understand Citizen Action Buttons -->
+      <div class="friendly-actions-grid">
+        <div class="friendly-action-btn" onclick="switchTab('citizen')">
+          <div class="friendly-action-icon" style="background:#fee2e2; color:#dc2626;">🚨</div>
+          <div style="flex:1;">
+            <div style="font-weight:800; font-size:1.05rem; color:#dc2626; margin-bottom:2px;">नल में पानी नहीं आ रहा या लीकेज है?</div>
+            <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">यहाँ बोलकर या लिखकर शिकायत दर्ज करें — 24 घंटे में समाधान</div>
+            <span class="friendly-action-badge" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;">शिकायत दर्ज करें ➔</span>
+          </div>
+        </div>
+
+        <div class="friendly-action-btn" onclick="switchTab('gis')">
+          <div class="friendly-action-icon" style="background:#e0f2fe; color:#0284c7;">🚰</div>
+          <div style="flex:1;">
+            <div style="font-weight:800; font-size:1.05rem; color:#0284c7; margin-bottom:2px;">अपने घर के नल की स्थिति देखें</div>
+            <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">गांव के नक्शे पर अपना नल, पानी का दबाव और समय देखें</div>
+            <span class="friendly-action-badge" style="background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd;">गांव का नक्शा खोलें ➔</span>
+          </div>
+        </div>
+
+        <div class="friendly-action-btn" onclick="switchTab('citizen'); setTimeout(() => document.getElementById('broadcastMessageInput')?.focus(), 300);">
+          <div class="friendly-action-icon" style="background:#dcfce7; color:#15803d;">💬</div>
+          <div style="flex:1;">
+            <div style="font-weight:800; font-size:1.05rem; color:#15803d; margin-bottom:2px;">गांव में वॉट्सऐप सूचना भेजें</div>
+            <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">सरपंच व जल सखी द्वारा ग्रामीणों को पानी के समय का संदेश</div>
+            <span class="friendly-action-badge" style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;">सूचना भेजें ➔</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Village Water Community Notice Board (गांव का जल सूचना पट्ट) -->
+      <div class="glass-card" style="margin-bottom:20px; border-left:4px solid var(--water-blue);">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">📢</span>
+            <span>गांव का जल सूचना पट्ट (Today's Village Water Notice)</span>
+          </div>
+          <span class="badge badge-success">ताज़ा अपडेट (Live)</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="background:#f0fdf4; border-left:4px solid var(--status-functional); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.86rem; color:#14532d;">
+            <strong>🌅 जलापूर्ति समय:</strong> आज शाम की सप्लाई ठीक <strong>17:30 बजे से 19:30 बजे</strong> तक सभी वार्डों में की जाएगी। कृपया पानी का अपव्यय न करें और टोंटी बंद रखें।
+          </div>
+          <div style="background:#fffbeb; border-left:4px solid var(--status-warning); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.86rem; color:#78350f;">
+            <strong>🛠️ मरम्मत कार्य:</strong> सेक्टर 4 (दक्षिण वार्ड) में पाइपलाइन की मरम्मत जारी है। पंप ऑपरेटर राधेश्याम गुर्जर मौके पर उपस्थित हैं। कार्य दोपहर 3:00 बजे तक पूर्ण हो जाएगा।
+          </div>
+          <div style="background:#f0f9ff; border-left:4px solid var(--water-blue); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.86rem; color:#0c4a6e;">
+            <strong>☀️ सौर ऊर्जा बचत:</strong> आज गांव का 10 एचपी बोरवेल पंप सौर ऊर्जा से संचालित हो रहा है। पंचायत को आज ₹692 की बिजली बचत हुई है।
+          </div>
+        </div>
+      </div>
+
+      <!-- Village Water Officials & Helpline Strip (गांव के जिम्मेदार व्यक्ति एवं हेल्पलाइन) -->
+      <div class="glass-card" style="margin-bottom:24px;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">👥</span>
+            <span>गांव की जल समिति एवं सहायता संपर्क (Village Water Helpline & Officials)</span>
+          </div>
+          <span class="badge badge-info">24x7 हेल्पलाइन</span>
+        </div>
+        <div class="village-contacts-strip">
+          <a href="tel:+919414088712" class="village-contact-card" title="जल सखी को कॉल करें">
+            <div style="font-size:2rem; background:#ecfdf5; padding:8px; border-radius:var(--radius-md);">👩‍🌾</div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">सुनीता मीणा</div>
+              <div style="font-size:0.75rem; color:var(--status-functional); font-weight:600;">जल सखी (Water Quality & Help)</div>
+              <div style="font-size:0.84rem; font-weight:700; color:var(--water-blue); margin-top:2px;">📞 +91 94140 88712</div>
+            </div>
+          </a>
+
+          <a href="tel:+919829012345" class="village-contact-card" title="पंप ऑपरेटर को कॉल करें">
+            <div style="font-size:2rem; background:#eff6ff; padding:8px; border-radius:var(--radius-md);">🔧</div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">राधेश्याम गुर्जर</div>
+              <div style="font-size:0.75rem; color:var(--water-blue); font-weight:600;">पंप ऑपरेटर (Pump & Pipe Repair)</div>
+              <div style="font-size:0.84rem; font-weight:700; color:var(--water-blue); margin-top:2px;">📞 +91 98290 12345</div>
+            </div>
+          </a>
+
+          <div class="village-contact-card">
+            <div style="font-size:2rem; background:#fef3c7; padding:8px; border-radius:var(--radius-md);">🏛️</div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">श्रीमती कमला देवी</div>
+              <div style="font-size:0.75rem; color:#d97706; font-weight:600;">सरपंच (Gram Panchayat Rampur)</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">🏅 हर घर जल प्रमाणित गांव</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           DETAILED VIEW ONLY: ADVANCED TECHNICAL CHARTS & TABLES FOR ENGINEERS
+           (Hidden in Simple View for clean, friendly clarity)
+           ===================================================================== -->
+      <div class="detailed-mode-only">
+        <div style="background:rgba(56,189,248,0.08); border:1px dashed var(--water-cyan); border-radius:var(--radius-md); padding:10px 16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="font-size:0.82rem; color:var(--water-electric);">
+            ⚙️ <strong>Detailed Engineering View Active:</strong> Showing 24h diurnal demand, IWA Water Balance, IMD Weather Forecaster, and State rankings.
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="setViewMode('simple')" style="font-size:0.75rem; padding:2px 8px;">
+            ✕ Switch Back to Simple View
+          </button>
+        </div>
+
+        <!-- Middle Grid: Village Tank & Supply Hours + Active Warnings -->
+        <div class="grid-cols-2-1">
+          <!-- Village Tank Visualizer & Diurnal Flow Chart -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="card-title-icon">📈</span>
+                <span>24-Hour Water Flow vs Diurnal Demand</span>
+              </div>
+              <span class="badge badge-success">Online</span>
+            </div>
+            <div style="height: 200px; width: 100%;">
+              <canvas id="supplyDiurnalChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Active Warnings & Urgent Work Orders -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="card-title-icon">🚨</span>
+                <span>Active Warnings & Dispatches</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="switchTab('ai')">View All in AI Tab</button>
+            </div>
+            <div id="activeAlertsList" style="max-height: 240px; overflow-y:auto;">
+              <!-- Dynamically populated by renderAlertsList -->
+            </div>
+          </div>
+        </div>
+
+        <!-- IWA Standard Water Balance & NRW Audit -->
+        <div class="glass-card" style="margin-top:20px; border:1px solid rgba(56,189,248,0.3);">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">⚖️</span>
+              <span>IWA Standard Water Balance & Non-Revenue Water (NRW) Audit</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge badge-success" id="wbBenchmarkGrade">A1 - Outstanding</span>
+              <button class="btn btn-secondary btn-sm" onclick="window.WaterBalance.refresh()">🔄 Refresh Audit</button>
+            </div>
+          </div>
+          <div class="grid-cols-4" style="margin-bottom:14px;">
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:var(--radius-md); border-left:4px solid var(--water-blue);">
+              <div style="font-size:0.72rem; color:var(--text-muted);">NON-REVENUE WATER (NRW)</div>
+              <div id="wbNrwPercent" style="font-size:1.4rem; font-weight:800; color:var(--status-functional);">5.5%</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:var(--radius-md); border-left:4px solid var(--status-functional);">
+              <div style="font-size:0.72rem; color:var(--text-muted);">BILLED HOUSEHOLDS</div>
+              <div id="wbBilledVolume" style="font-size:1.2rem; font-weight:800; color:var(--status-functional);">97.8k L (89%)</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:var(--radius-md); border-left:4px solid #f97316;">
+              <div style="font-size:0.72rem; color:var(--text-muted);">PHYSICAL LOSSES</div>
+              <div id="wbRealLosses" style="font-size:1.2rem; font-weight:800; color:#f97316;">4.2k L</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:var(--radius-md); border-left:4px solid var(--water-cyan);">
+              <div style="font-size:0.72rem; color:var(--text-muted);">SAVINGS / MONTH</div>
+              <div id="wbMonthlySavings" style="font-size:1.2rem; font-weight:800; color:var(--water-cyan);">₹21,600</div>
+            </div>
+          </div>
+          <div style="height: 180px; width: 100%;">
+            <canvas id="waterBalanceFlowChart"></canvas>
+          </div>
+        </div>
+
+        <!-- IMD Weather & AI Water Demand Forecaster -->
+        <div class="glass-card" style="margin-top:20px; border:1px solid rgba(245,158,11,0.25);">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">⛅</span>
+              <span>IMD Automated Weather Feed & 7-Day AI Demand Forecaster</span>
+            </div>
+            <span id="weatherHeatwaveLevel" class="badge badge-warning">Amber</span>
+          </div>
+          <div class="grid-cols-2-1">
+            <div style="height: 200px; width: 100%;">
+              <canvas id="weatherDemandForecastChart"></canvas>
+            </div>
+            <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:var(--radius-md);">
+              <div style="font-size:0.75rem; color:var(--text-muted);">Current Local Weather: <strong id="weatherCurrentTemp" style="color:#fbbf24;">38.4°C</strong></div>
+              <div style="margin: 8px 0;">
+                <label style="font-size:0.75rem;">Climate Stress Test: <strong id="tempSliderVal">+0°C</strong></label>
+                <input type="range" class="custom-range-slider" min="-5" max="8" value="0" step="1" oninput="window.WeatherDemand.setTempDelta(this.value)">
+              </div>
+              <div id="weatherAiRecommendation" style="font-size:0.74rem; background:rgba(245,158,11,0.08); padding:8px; border-radius:4px;">
+                💡 <strong>AI Forecast:</strong> Pre-fill Rampur OHT to 95% during solar window.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- State Leaderboard Table -->
+        <div class="glass-card" style="margin-top:20px;">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">🇮🇳</span>
+              <span>State-Wise FHTC Functionality Ranking</span>
+            </div>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>State Name</th>
+                  <th>Monitored Taps</th>
+                  <th>Functionality Rate</th>
+                  <th>Daily LPCD</th>
+                  <th>Sujal Gaon Certified</th>
+                </tr>
+              </thead>
+              <tbody id="statesLeaderboardBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 2: VILLAGE TAP MAP & VALVE FLOW SIMULATOR (GIS)
+         ======================================================================= -->
+    <section id="tab-gis" class="tab-pane">
+
+      <!-- Map Banner -->
+      <div class="welcome-health-banner" style="margin-bottom:16px;">
+        <div class="welcome-text">
+          <span style="font-size:1.3rem;">🗺️</span>
+          <div>
+            <strong>Interactive Village Tap Map & Hydraulic Valve Matrix</strong>
+            <div style="font-size:0.78rem; color:var(--text-secondary);">
+              Click any circle to inspect household water pressure and quantity. Use the interactive valve sliders to simulate grid pressure rebalancing.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="showToast('Zooming into Sector 4 Burst Zone', 'info'); window.GisMap.map.setView([26.9830, 75.8518], 18);">
+            🔍 Focus Sector 4
+          </button>
+        </div>
+      </div>
+
+      <!-- Map & Controls Layout -->
+      <div class="gis-layout">
+        <!-- Leaflet Map Container -->
+        <div class="gis-map-viewport">
+          <div id="gisMap"></div>
+        </div>
+
+        <!-- Side Panel with Layers + Interactive Valve Matrix -->
+        <div class="gis-layers-panel">
+          <!-- Layer Toggles -->
+          <div class="glass-card" style="padding:14px;">
+            <div style="font-weight:700; font-size:0.9rem; margin-bottom:10px; color:var(--water-electric);">
+              🗺️ Map Filters
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <label class="gis-layer-toggle">
+                <span style="font-size:0.8rem;">🟢 Working Taps (328)</span>
+                <input type="checkbox" id="filterFunctional" checked>
+              </label>
+              <label class="gis-layer-toggle">
+                <span style="font-size:0.8rem;">🟡 Low Pressure (10)</span>
+                <input type="checkbox" id="filterLowPressure" checked>
+              </label>
+              <label class="gis-layer-toggle">
+                <span style="font-size:0.8rem;">🔴 No Water / Rupture (2)</span>
+                <input type="checkbox" id="filterDefunct" checked>
+              </label>
+              <label class="gis-layer-toggle">
+                <span style="font-size:0.8rem;">〰️ Underground Pipelines</span>
+                <input type="checkbox" id="filterPipelines" checked>
+              </label>
+            </div>
+          </div>
+
+          <!-- Interactive Hydraulic Valve Control Matrix (Detailed Engineer Mode Only) -->
+          <div class="glass-card detailed-mode-only" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="font-weight:700; font-size:0.9rem; color:var(--water-cyan);">
+                🚰 Interactive Valve Matrix
+              </div>
+              <span class="badge badge-info" style="font-size:0.68rem;">What-If Simulator</span>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
+              Throttle valves to balance tail-end pressure:
+            </div>
+            <div id="valveMatrixContainer">
+              <!-- Dynamically populated by valve-matrix.js -->
+            </div>
+          </div>
+
+          <!-- Rampur Scheme Details -->
+          <div class="glass-card" style="padding:14px;">
+            <div style="font-weight:700; font-size:0.9rem; margin-bottom:8px; color:var(--water-cyan);">
+              📍 Rampur Village Details
+            </div>
+            <div style="font-size:0.8rem; display:flex; flex-direction:column; gap:6px; color:var(--text-secondary);">
+              <div>Sarpanch: <strong>Smt. Kamla Devi</strong></div>
+              <div>Jal Sahiya: <strong>Sunita Meena</strong> (+91 94140 88712)</div>
+              <div>Pump Operator: <strong>Radheshyam Gurjar</strong></div>
+              <div>Total Households: <strong>340</strong> (100% Tap Coverage)</div>
+              <div>Sujal Gaon ID: <span class="badge badge-success">SG-RJ-JAI-1042</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complete FHTC Household Database Table with Live Search -->
+      <div class="glass-card" style="margin-top:20px;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">📋</span>
+            <span>All Village Household Connections (340 Taps)</span>
+          </div>
+          <div style="width: 320px; max-width: 100%;">
+            <input type="text" class="form-input" style="padding:6px 12px; font-size:0.82rem;" placeholder="🔍 Search by name (e.g. Ramesh) or Tap ID..." oninput="filterFhtcTable(this.value)">
+          </div>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tap Connection ID</th>
+                <th>Consumer / Family Head</th>
+                <th>Water Delivered (LPCD)</th>
+                <th>Pressure (Meters Head)</th>
+                <th>Water Quality</th>
+                <th>Status</th>
+                <th>Health Score</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="fhtcTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 3: AI WAVELET OSCILLOSCOPE & PREDICTIVE FAILURE ENGINE
+         ======================================================================= -->
+    <section id="tab-ai" class="tab-pane">
+      <div class="welcome-health-banner" style="margin-bottom:18px;">
+        <div class="welcome-text">
+          <span style="font-size:1.3rem;">🧠</span>
+          <div>
+            <strong>Neural AI Wavelet Scanner & Explainable Failure Predictor</strong>
+            <div style="font-size:0.78rem; color:var(--text-secondary);">
+              Continuous 100 Hz high-frequency pressure wave sampling and SHAP-based anomaly attribution detect ruptures and equipment degradation in real time.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary btn-sm" onclick="openChaosModal()">⚡ Test Burst Detection</button>
+          <button class="btn btn-secondary btn-sm" onclick="window.AiEngine.init()">🔄 Re-run Inference</button>
+        </div>
+      </div>
+
+      <!-- Real-Time 100 Hz Oscilloscope Canvas & Explainable AI SHAP Attribution -->
+      <div class="grid-cols-2-1" style="margin-bottom:20px;">
+        <!-- Left: Live Oscilloscope Waveform -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">⚡</span>
+              <span>100 Hz Real-Time Transient Pressure Wavelet Oscilloscope</span>
+            </div>
+            <button id="freezeWaveBtn" class="btn btn-secondary btn-sm" onclick="window.WaveOscilloscope.toggleFreeze()">
+              ⏸️ Freeze Wave
+            </button>
+          </div>
+          <div class="oscilloscope-box">
+            <canvas id="waveletCanvas"></canvas>
+          </div>
+          <div style="font-size:0.76rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>Acoustic Frequency: <strong>44.2 Hz</strong> (Laminar Flow)</span>
+            <span>Wavelet Filter: <strong style="color:var(--status-functional);">ACTIVE (Daubechies db4)</strong></span>
+            <span>Singularity Threshold: <strong>0.35 Bar/sec</strong></span>
+          </div>
+        </div>
+
+        <!-- Right: Explainable AI (XAI) Feature Importance -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">🔍</span>
+              <span>Explainable AI (SHAP) Feature Attribution</span>
+            </div>
+            <span class="badge badge-info">XAI Engine</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">
+            Factors contributing to current grid health diagnosis:
+          </div>
+          <div id="shapFeaturesContainer">
+            <!-- Dynamically populated by wave-oscilloscope.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Plain-Language AI Guard Cards -->
+      <div class="grid-cols-4" id="aiModelsContainer">
+        <!-- Dynamically populated by ai-engine.js -->
+      </div>
+
+      <!-- Pipeline Pressure Profile (Leak Pinpoint) -->
+      <div class="glass-card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">📉</span>
+            <span>Hydraulic Pressure Gradient Along Pipeline Chainage</span>
+          </div>
+          <span class="badge badge-danger">Leak Pinpointed at Sector 4 (Chainage 340m)</span>
+        </div>
+        <div style="height: 280px; width: 100%;">
+          <canvas id="hydraulicGradientChart"></canvas>
+        </div>
+        <div style="margin-top:14px; padding:12px 16px; background:rgba(239,68,68,0.08); border-left:4px solid var(--status-critical); border-radius:var(--radius-sm); font-size:0.83rem;">
+          <div style="font-weight:700; color:#fca5a5; margin-bottom:2px;">
+            🚨 Sudden Water Pressure Collapse Detected at Sector 4
+          </div>
+          <div style="color:var(--text-secondary);">
+            Water pressure dropped from 1.12 Bar to 0.15 Bar downstream of Node 4. The system pinpointed a pipe leak at <strong>South Ward Line (SEG-04) at 340m from tank</strong>. Estimated water loss: <strong>420 Litres/hr</strong>. Action dispatched to pump operator.
+          </div>
+        </div>
+      </div>
+
+      <!-- 72-Hour Failure Forecast & Work Orders -->
+      <div class="grid-cols-2">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">⏳</span>
+              <span>Predictive Equipment Warnings (Next 72 Hours)</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:var(--radius-md); border-left:4px solid #f59e0b;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-weight:700; color:#fbbf24;">Deep Borewell #1 Pump Motor</span>
+                <span class="badge badge-warning">Warning: 36h Window</span>
+              </div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
+                Motor vibration has risen to 4.8 mm/s with bearing temperature +12°C higher than normal. Preventive maintenance needed before motor burns out.
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.75rem; color:var(--text-muted);">Preventive Order: WO-RJ-PUMP-081</span>
+                <button class="btn btn-secondary btn-sm" onclick="showToast('Preventive bearing inspection assigned to mechanical team.', 'info')">
+                  Assign Maintenance
+                </button>
+              </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:var(--radius-md); border-left:4px solid #38bdf8;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-weight:700; color:var(--water-electric);">Tail-End Clean Water Alert (Ward 2)</span>
+                <span class="badge badge-info">Chlorine Decay Alert</span>
+              </div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
+                Due to summer midday heat, chlorine in water at Ward 2 tail connections is predicted to drop to 0.14 ppm during afternoon hours.
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.75rem; color:var(--text-muted);">Action: Auto-dosing booster adjustment</span>
+                <button class="btn btn-secondary btn-sm" onclick="showToast('Dosing rate increased by 15% to maintain safe drinking standard.', 'success')">
+                  Apply Auto-Dosing
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">🛠️</span>
+              <span>Field Work Orders (SLA Countdown)</span>
+            </div>
+            <span class="badge badge-success">On-Time Fix Rate: 94.2%</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:var(--radius-md); border-left:4px solid var(--status-critical);">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.86rem;">
+                <span>WO-RJ-2026-441 (Sector 4 Pipe Leak)</span>
+                <span style="color:#f87171;">⏳ 18h remaining</span>
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin:4px 0;">
+                Underground pipe repair • Assigned to: Radheshyam Gurjar & Sunita Meena
+              </div>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button class="btn btn-primary btn-sm" onclick="showToast('SMS alert resent to Pump Operator & Sarpanch.', 'success')">
+                  📲 Resend SMS Alert
+                </button>
+              </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:var(--radius-md); border-left:4px solid var(--status-warning);">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.86rem;">
+                <span>WO-RJ-2026-438 (Tail Valve Balance)</span>
+                <span style="color:#fbbf24;">⏳ 34h remaining</span>
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin:4px 0;">
+                Ward 2 Sluice Valve balancing • Assigned to: Junior Engineer DWSM
+              </div>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button class="btn btn-secondary btn-sm" onclick="showToast('Status updated to Technician En-Route.', 'info')">
+                  Update Status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           ADVANCED FEATURE 3: IOT TELEMETRY NODE DIAGNOSTICS & GATEWAY TOPOLOGY
+           ===================================================================== -->
+      <div class="glass-card" style="margin-top:20px; border:1px solid rgba(6,182,212,0.3);">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">📡</span>
+            <span>IoT Hardware Telemetry Node Diagnostics & LoRaWAN Gateway Health</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge badge-success" id="iotOnlineNodes">12 / 12 Online</span>
+            <button class="btn btn-secondary btn-sm" onclick="window.IotTopology.init()">🔄 Ping Nodes</button>
+          </div>
+        </div>
+
+        <!-- IoT Diagnostic KPI Strip -->
+        <div class="grid-cols-4" style="margin-bottom:14px;">
+          <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md);">
+            <div style="font-size:0.72rem; color:var(--text-muted);">ACTIVE FIELD NODES</div>
+            <div id="iotTotalNodes" style="font-size:1.4rem; font-weight:800; color:var(--water-electric);">12</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">Pressure, Acoustic, WQMS & Valves</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md);">
+            <div style="font-size:0.72rem; color:var(--text-muted);">GATEWAY UPTIME</div>
+            <div id="iotGatewayUptime" style="font-size:1.4rem; font-weight:800; color:var(--status-functional);">99.96%</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">LoRaWAN 865 MHz Base Station</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md);">
+            <div style="font-size:0.72rem; color:var(--text-muted);">PACKET LOSS RATE</div>
+            <div id="iotPacketLoss" style="font-size:1.4rem; font-weight:800; color:var(--status-functional);">0.04%</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">218k telemetry frames parsed</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md);">
+            <div style="font-size:0.72rem; color:var(--text-muted);">MODBUS / RS485 STATUS</div>
+            <div style="font-size:1.4rem; font-weight:800; color:var(--water-cyan);">CRC Valid</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">Zero frame corruptions</div>
+          </div>
+        </div>
+
+        <div class="grid-cols-2-1">
+          <!-- 12 Nodes Grid -->
+          <div>
+            <div style="font-weight:700; font-size:0.84rem; margin-bottom:8px; color:var(--text-secondary);">
+              📍 Field Telemetry Transducers & Actuator Nodes
+            </div>
+            <div id="iotNodesContainer" class="iot-nodes-grid">
+              <!-- Populated by iot-topology.js -->
+            </div>
+          </div>
+
+          <!-- Live Hex Packet Streamer -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="font-weight:700; font-size:0.84rem; color:var(--text-secondary);">
+                ⚡ Live LoRaWAN / Modbus Telemetry Packet Stream
+              </div>
+              <span class="pulse-dot"></span>
+            </div>
+            <div id="iotPacketTicker" class="packet-ticker-box">
+              <div class="packet-line"><span style="color:var(--text-muted);">Boot:</span> <span style="color:var(--water-electric);">Gateway Online</span> <span style="color:#6ee7b7;">Listening on 865.0 MHz...</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 4: SOLAR MICRO-GRID & GREEN ENERGY OPTIMIZER
+         ======================================================================= -->
+    <section id="tab-solar" class="tab-pane">
+      <div class="welcome-health-banner" style="margin-bottom:18px;">
+        <div class="welcome-text">
+          <span style="font-size:1.3rem;">☀️</span>
+          <div>
+            <strong>18 kW Solar PV Micro-Grid & Borewell Pump Energy Optimizer</strong>
+            <div style="font-size:0.78rem; color:var(--text-secondary);">
+              AI-driven solar dual-feed pumping schedule eliminates electricity bills for Gram Panchayat Rampur and cuts carbon emissions.
+            </div>
+          </div>
+        </div>
+        <span class="badge badge-success">Zero Grid Energy Tariffs during Solar Hours</span>
+      </div>
+
+      <!-- 4 Solar Power KPI Cards -->
+      <div class="grid-cols-4">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Solar PV Generation</span>
+            <span class="kpi-icon-wrap kpi-icon-amber">☀️</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="solarCurrentOutput" class="kpi-value" style="color:#fbbf24;">14.5 kW</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>Array Capacity: 18.0 kW Peak</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Monocrystalline High-Efficiency Panels</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Pump Power Demand</span>
+            <span class="kpi-icon-wrap kpi-icon-blue">⚡</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="solarPumpDemand" class="kpi-value">7.4 kW</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>10 HP Submersible Solar Pump</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">100% Powered by direct solar energy</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label" id="solarNetFlowLabel">Net Solar Exported</span>
+            <span class="kpi-icon-wrap kpi-icon-green">🔄</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="solarNetGridFlow" class="kpi-value" style="color:var(--status-functional);">7.1 kW</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>● Net-metering surplus sold to Discom</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Credit applied to Gram Panchayat account</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Battery Storage (LiFePO4)</span>
+            <span class="kpi-icon-wrap kpi-icon-cyan">🔋</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="solarBatterySoc" class="kpi-value">82%</span>
+              <span class="kpi-unit">24.6 / 30 kWh</span>
+            </div>
+            <div class="progress-track" style="margin-top:6px;">
+              <div id="solarBatteryBar" class="progress-fill fill-cyan" style="width: 82%;"></div>
+            </div>
+          </div>
+          <div class="kpi-subtext">Provides 4 hours night backup supply</div>
+        </div>
+      </div>
+
+      <!-- Solar Generation Chart & Carbon Savings -->
+      <div class="grid-cols-2-1">
+        <!-- 24h Solar Irradiance Curve vs Pump Load -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">📈</span>
+              <span>Daily Solar Generation Curve vs Pump Operating Schedule</span>
+            </div>
+            <span class="badge badge-success">Optimal Solar Window: 10:00 - 15:30 IST</span>
+          </div>
+          <div style="height: 250px; width: 100%;">
+            <canvas id="solarGenerationChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Carbon Offset & Financial Savings Card -->
+        <div class="solar-flow-card">
+          <div style="font-weight:800; font-size:1.1rem; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <span>🌱</span>
+            <span>Panchayat Financial & Green Savings</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:var(--radius-md);">
+              <div style="font-size:0.75rem; color:var(--text-muted);">Daily Electricity Bill Savings</div>
+              <div id="solarBillSavings" style="font-size:1.6rem; font-weight:800; color:var(--status-functional);">₹692.00</div>
+              <div style="font-size:0.75rem; color:var(--text-secondary);">Projected Annual Savings: <strong>₹2,52,000 / year</strong></div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:var(--radius-md);">
+              <div style="font-size:0.75rem; color:var(--text-muted);">Daily CO2 Carbon Offset</div>
+              <div id="solarCo2Offset" style="font-size:1.4rem; font-weight:800; color:#10b981;">70.8 kg CO2</div>
+              <div style="font-size:0.75rem; color:var(--text-secondary);">Cumulative Clean Energy: <strong id="solarCumulativeCo2">18.4 Tons</strong></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="showToast('AI Solar schedule pushed to Pump Controller.', 'success')">
+              ⚡ Apply Solar-First Pump Schedule
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 5: CITIZEN HELP PORTAL & COMMUNITY WHATSAPP/SMS BROADCASTER
+         ======================================================================= -->
+    <section id="tab-citizen" class="tab-pane">
+      <div class="citizen-portal-container">
+        <!-- Hero Card -->
+        <div class="citizen-hero-card">
+          <div class="citizen-hero-title">
+            <span>🗣️ जल संवाद (Jal Samvad) & Community Broadcast</span>
+            <span class="badge badge-success">Mobile Citizen Portal</span>
+          </div>
+          <div class="citizen-hero-desc">
+            ग्रामीण समुदाय के लिए नल-जल शिकायत एवं समाधान मंच। अपनी समस्या दर्ज करें या ग्राम पंचायत द्वारा सीधे वॉट्सऐप/एसएमएस सूचना भेजें।
+            (Citizen grievance redressal with automated AI triage and community broadcast dispatcher).
+          </div>
+        </div>
+
+        <!-- Community WhatsApp & SMS Broadcast Dispatcher (New Feature) -->
+        <div class="glass-card" style="border:1px solid rgba(16,185,129,0.3);">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">📢</span>
+              <span>Village Water Broadcast Dispatcher (WhatsApp / SMS)</span>
+            </div>
+            <span class="badge badge-success">Direct Villager Notification</span>
+          </div>
+
+          <div class="grid-cols-2-1">
+            <!-- Composer -->
+            <div>
+              <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <button type="button" class="channel-select-btn active" data-channel="whatsapp">
+                  💬 WhatsApp Broadcast
+                </button>
+                <button type="button" class="channel-select-btn" data-channel="sms">
+                  📱 Mobile SMS Alert
+                </button>
+              </div>
+
+              <!-- Quick Template Buttons -->
+              <div style="margin-bottom:10px;">
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Quick Templates (त्वरित संदेश):</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.CommunityBroadcast.setTemplate('normal_supply')">
+                    ⏰ Supply Timing Notice
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.CommunityBroadcast.setTemplate('maintenance')">
+                    🛠️ Maintenance Notice
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.CommunityBroadcast.setTemplate('quality_safe')">
+                    🧪 Water Quality Safe
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Broadcast Message (संदेश लिखें)</label>
+                <textarea id="broadcastMessageInput" class="form-textarea" rows="4">जल जीवन मिशन सूचना: आज शाम की जल आपूर्ति 17:30 से 19:30 बजे तक पूर्ण दबाव के साथ सुचारू रूप से की जाएगी। कृपया पानी का सदुपयोग करें। - ग्राम पंचायत रामपुर</textarea>
+              </div>
+
+              <button type="button" id="sendBroadcastBtn" class="btn btn-primary" onclick="window.CommunityBroadcast.sendBroadcast()" style="width:100%;">
+                📲 Send Broadcast to 340 Villagers
+              </button>
+            </div>
+
+            <!-- Phone Mockup Preview -->
+            <div>
+              <div class="phone-mockup-frame">
+                <div class="phone-mockup-header" id="phoneMockupTitle">
+                  💬 JJM Jal Samvad (WhatsApp)
+                </div>
+                <div class="phone-mockup-body" id="phoneMockupBody">
+                  <!-- Dynamically populated by community-broadcast.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
+            <div style="font-weight:700; font-size:0.82rem; margin-bottom:6px; color:var(--text-secondary);">
+              Recent Village Broadcasts:
+            </div>
+            <div id="recentBroadcastsList"></div>
+          </div>
+        </div>
+
+        <!-- 3-Step Citizen Grievance Reporting Form -->
+        <div class="glass-card">
+          <div style="font-weight:700; font-size:1rem; margin-bottom:2px;">
+            1. Select Your Issue (समस्या का प्रकार चुनें)
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px;">
+            Click on the problem icon that matches your situation:
+          </div>
+
+          <div class="category-tiles-grid">
+            <div class="category-tile selected" data-category-en="No Water Supply" data-category-hi="पानी की आपूर्ति बंद">
+              <div class="category-icon cat-dry">🚫</div>
+              <div>
+                <div class="category-name-en">No Water</div>
+                <div class="category-name-hi">पानी नहीं आ रहा</div>
+              </div>
+            </div>
+
+            <div class="category-tile" data-category-en="Low Pressure" data-category-hi="धीमा दबाव / बहुत कम पानी">
+              <div class="category-icon cat-pressure">📉</div>
+              <div>
+                <div class="category-name-en">Low Pressure</div>
+                <div class="category-name-hi">धीमा दबाव</div>
+              </div>
+            </div>
+
+            <div class="category-tile" data-category-en="Turbid / Foul Water" data-category-hi="मटमैला / गंदा पानी">
+              <div class="category-icon cat-quality">🧪</div>
+              <div>
+                <div class="category-name-en">Dirty Water</div>
+                <div class="category-name-hi">मटमैला / गंदा पानी</div>
+              </div>
+            </div>
+
+            <div class="category-tile" data-category-en="Pipeline Burst / Leakage" data-category-hi="पाइपलाइन रिसाव / टूट-फूट">
+              <div class="category-icon cat-leak">💥</div>
+              <div>
+                <div class="category-name-en">Pipe Leakage</div>
+                <div class="category-name-hi">पाइप टूटा हुआ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div style="font-weight:700; font-size:1rem; margin-bottom:12px;">
+            2. Enter Tap Details & Evidence (विवरण दर्ज करें)
+          </div>
+
+          <form id="citizenGrievanceForm">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Tap Connection ID (नल संख्या)</label>
+                <input type="text" id="grvFhtcInput" class="form-input" value="FHTC-RJ-JAI-010" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Your Name (उपभोक्ता का नाम)</label>
+                <input type="text" id="grvNameInput" class="form-input" value="Mohan Lal Jat" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Mobile Number (मोबाइल नंबर)</label>
+              <input type="tel" id="grvPhoneInput" class="form-input" value="+91 98291 44512" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description (समस्या का विवरण)</label>
+              <textarea id="grvDescInput" class="form-textarea" rows="2">पिछले 2 दिनों से हमारे नल में पानी बिल्कुल नहीं आ रहा है। कृपया तुरंत जांच करवाएं।</textarea>
+            </div>
+
+            <!-- Voice Recording Option (Rural Accessibility) -->
+            <div class="form-group">
+              <label class="form-label">🎙️ Voice Grievance (बोलकर संदेश रिकॉर्ड करें - हिन्दी / मारवाड़ी / भोजपुरी)</label>
+              <div class="voice-recorder-box">
+                <button type="button" id="voiceRecordBtn" class="voice-record-btn" title="Click to Record Voice">
+                  🎤
+                </button>
+                <div class="voice-status-info">
+                  <div id="voiceTimerText" class="voice-timer">Click mic to record (बोलने के लिए माइक दबाएं)</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">Press mic to record speech, automatically converted to text</div>
+                  <div id="voiceTranscriptBox" class="voice-transcript-preview"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Photo Upload Option -->
+            <div class="form-group">
+              <label class="form-label">📷 Tap Photo Evidence (नल की तस्वीर जोड़ें)</label>
+              <div class="photo-upload-zone" id="photoUploadZone">
+                <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
+                <div style="font-size:1.6rem; margin-bottom:4px;">📸</div>
+                <div style="font-weight:600; font-size:0.86rem;">Click to upload tap photo evidence</div>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">GPS geo-tag and timestamp automatically verified</div>
+                <button type="button" class="btn btn-secondary btn-sm" id="useSamplePhotoBtn">
+                  Attach Sample Tap Photo
+                </button>
+                <img id="photoPreview" class="photo-preview-box" style="display:none;" alt="Photo Preview">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:0.95rem; font-weight:700;">
+              🚀 Submit Grievance & Send to Jal Sahiya (शिकायत दर्ज करें)
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Grievance Tracking Board -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">📋</span>
+              <span>Village Grievances Tracking (शिकायत स्थिति)</span>
+            </div>
+            <span class="badge badge-info">SLA: 24-48 Hours</span>
+          </div>
+          <div id="grievancesListContainer" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Dynamically populated by citizen-portal.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 6: WATER PURITY & FTK SURVEILLANCE (WQMS)
+         ======================================================================= -->
+    <section id="tab-wqms" class="tab-pane">
+      <div class="welcome-health-banner" style="margin-bottom:18px;">
+        <div class="welcome-text">
+          <span style="font-size:1.3rem;">🧪</span>
+          <div>
+            <strong>Water Quality Surveillance (BIS 10500 Standards)</strong>
+            <div style="font-size:0.78rem; color:var(--text-secondary);">
+              Continuous IoT sensor testing + regular Field Test Kit (FTK) chemical and bacteriological testing by village women (Jal Sahiya).
+            </div>
+          </div>
+        </div>
+        <span class="badge badge-success">Overall Status: 100% Potable</span>
+      </div>
+
+      <!-- 4 Simple Traffic Light Water Quality Cards -->
+      <div class="grid-cols-4">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Free Chlorine</span>
+            <span class="kpi-icon-wrap kpi-icon-cyan">🧪</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="wqChlorineGauge" class="kpi-value" style="color:var(--status-functional);">0.38 mg/L</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>🟢 Safe (Kills germs & viruses)</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Safe Standard: 0.2 to 0.5 mg/L</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Water Clarity (Turbidity)</span>
+            <span class="kpi-icon-wrap kpi-icon-green">🌊</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="wqTurbidityGauge" class="kpi-value" style="color:var(--status-functional);">1.1 NTU</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>🟢 Clear (Crystal clear potable water)</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Safe Standard: < 2.0 NTU</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">pH Balance</span>
+            <span class="kpi-icon-wrap kpi-icon-blue">💧</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="wqPhGauge" class="kpi-value">7.35</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>🟢 Safe Neutral (Ideal for drinking)</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Safe Standard: 6.5 to 8.5 pH</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Total Dissolved Solids (TDS)</span>
+            <span class="kpi-icon-wrap kpi-icon-purple">💎</span>
+          </div>
+          <div>
+            <div class="kpi-value-row">
+              <span id="wqTdsGauge" class="kpi-value">215 ppm</span>
+            </div>
+            <div class="kpi-trend trend-up">
+              <span>🟢 Sweet Tasting (< 500 ppm)</span>
+            </div>
+          </div>
+          <div class="kpi-subtext">Safe Standard: < 500 ppm desirable</div>
+        </div>
+      </div>
+
+      <!-- Jal Sahiya FTK Testing Logs + Chlorination Calculator -->
+      <div class="grid-cols-2">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">👩‍🔬</span>
+              <span>Jal Sahiya Women Field Test Kit (FTK) Logs</span>
+            </div>
+            <span class="badge badge-success">5 Trained Women in Rampur</span>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:12px;">
+            Regular physical, chemical, and bacteria testing performed at household standposts:
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:700; font-size:0.86rem;">H2S Bacteriological Test (Coliform Bacteria)</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Tested at: Ramesh Chandra Tap (H-101) by Sunita Meena</div>
+              </div>
+              <span class="badge badge-success">Negative (Safe)</span>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:700; font-size:0.86rem;">Fluoride Strip Test</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Tested at: Primary School Standpost by Sunita Meena</div>
+              </div>
+              <span class="badge badge-success">0.7 mg/L (Safe < 1.0)</span>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:700; font-size:0.86rem;">Arsenic Field Test Kit</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Tested at: Deep Borewell #1 Discharge</div>
+              </div>
+              <span class="badge badge-success">None (< 0.01 mg/L)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple Chlorination Dosing Calculator -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">⚗️</span>
+              <span>Auto-Chlorination Dosing Calculator</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; font-size:0.84rem;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label class="form-label">Water Inflow Rate (LPS)</label>
+                <input type="number" id="calcFlowRate" class="form-input" value="8.9" step="0.1">
+              </div>
+              <div>
+                <label class="form-label">Water Turbidity (NTU)</label>
+                <input type="number" id="calcTurbidity" class="form-input" value="1.1" step="0.1">
+              </div>
+            </div>
+            <div style="background:rgba(56,189,248,0.08); border-left:4px solid var(--water-electric); padding:10px 14px; border-radius:var(--radius-sm);">
+              <div style="font-weight:700; color:var(--water-electric); margin-bottom:2px;">
+                Recommended Dosing: 1.25 mg/L Sodium Hypochlorite
+              </div>
+              <div style="font-size:0.76rem; color:var(--text-secondary);">
+                Guarantees >= 0.20 mg/L residual chlorine reaches all 340 homes in Rampur.
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="showToast('Chlorination recipe sent to electro-chlorinator.', 'success')">
+              Apply Recipe to Chlorinator
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           ADVANCED FEATURE 4: JAL SAHIYA WOMEN LEADERSHIP & SOCIAL AUDIT
+           ===================================================================== -->
+      <div class="glass-card" style="margin-top:20px; border:1px solid rgba(16,185,129,0.3);">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">👩‍🌾</span>
+            <span>Jal Sahiya Women Leadership & Gram Sabha Social Audit Verification</span>
+          </div>
+          <span class="badge badge-success">Community Stewardship</span>
+        </div>
+
+        <div class="grid-cols-2">
+          <!-- Left: Jal Sahiya Leaderboard -->
+          <div>
+            <div style="font-weight:700; font-size:0.86rem; color:var(--text-secondary); margin-bottom:8px;">
+              🏆 Top Jal Sahiya Women Water Guardians (Rampur GP)
+            </div>
+            <div id="sahiyaLeaderboardContainer" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Populated by community-stewardship.js -->
+            </div>
+          </div>
+
+          <!-- Right: Digital Social Audit Affirmation Form -->
+          <div style="background:rgba(255,255,255,0.02); padding:16px; border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--water-electric); margin-bottom:4px;">
+                ✍️ Record Gram Sabha Social Audit Affirmation
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:12px;">
+                Under JJM guidelines, any Gram Sabha member, Sarpanch, or Jal Sahiya can digitally endorse that drinking water quality and quantity have been independently verified in their ward.
+              </div>
+
+              <form onsubmit="window.CommunityStewardship.submitEndorsement(event)">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                  <div>
+                    <label class="form-label">Your Name (नाम)</label>
+                    <input type="text" id="endorserNameInput" class="form-input" placeholder="e.g. Kamla Devi" required>
+                  </div>
+                  <div>
+                    <label class="form-label">Role in Village (पद / भूमिका)</label>
+                    <select id="endorserRoleInput" class="form-select">
+                      <option value="Sarpanch">Sarpanch (सरपंच)</option>
+                      <option value="Jal Sahiya">Jal Sahiya (जल सखी)</option>
+                      <option value="VWSC Member">VWSC Member (समिति सदस्य)</option>
+                      <option value="Village Elder / Resident" selected>Village Resident (ग्रामीण नागरिक)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="background:rgba(16,185,129,0.06); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid rgba(16,185,129,0.2); font-size:0.75rem; margin-bottom:10px;">
+                  ☑️ "I hereby certify that clean potable water complying with BIS 10500 was supplied to households in my ward today."
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; font-size:0.86rem;">
+                  🏅 Digitally Sign Social Audit Endorsement
+                </button>
+              </form>
+            </div>
+
+            <div id="endorsementAffirmationBadge" style="display:none; margin-top:10px; padding:8px 12px; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:var(--radius-sm); font-size:0.78rem; color:#6ee7b7;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 7: JJM GOVERNMENT REPORTS & HAR GHAR JAL CERTIFICATE
+         ======================================================================= -->
+    <section id="tab-imis" class="tab-pane">
+      <div class="welcome-health-banner" style="margin-bottom:18px;">
+        <div class="welcome-text">
+          <span style="font-size:1.3rem;">🌐</span>
+          <div>
+            <strong>National JJM IMIS Gateway & Har Ghar Jal Certification</strong>
+            <div style="font-size:0.78rem; color:var(--text-secondary);">
+              Automatic synchronization with the Ministry of Jal Shakti (ejalshakti.gov.in) and Sujal Gaon Har Ghar Jal verification registry.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button id="forceImisSyncBtn" class="btn btn-primary btn-sm">
+            🔄 Sync with National IMIS Now
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="window.CertificateModal.open()">
+            🏅 View Official Certificate
+          </button>
+          <button id="exportAuditReportBtn" class="btn btn-secondary btn-sm">
+            📄 Download Audit Report (JSON)
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Pillars of Sustainability Audit Scorecard (New Advanced Feature) -->
+      <div class="glass-card" style="margin-bottom:18px; border:1px solid rgba(56,189,248,0.3);">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">🏅</span>
+            <span>JJM Four Pillars of Sustainability Audit Scorecard (Rampur GP)</span>
+          </div>
+          <span class="badge badge-success">Overall Audit Score: 96.8 / 100</span>
+        </div>
+        <div class="grid-cols-4">
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:var(--radius-md); border-left:4px solid #10b981;">
+            <div style="font-size:0.72rem; color:var(--text-muted);">PILLAR 1</div>
+            <strong style="font-size:0.9rem;">Water Quantity</strong>
+            <div style="font-size:1.2rem; font-weight:800; color:#10b981; margin:4px 0;">57.2 LPCD</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">Norm: 55 LPCD (104% Achieved)</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:var(--radius-md); border-left:4px solid #06b6d4;">
+            <div style="font-size:0.72rem; color:var(--text-muted);">PILLAR 2</div>
+            <strong style="font-size:0.9rem;">Water Quality</strong>
+            <div style="font-size:1.2rem; font-weight:800; color:#06b6d4; margin:4px 0;">100% Potable</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">Tested under BIS 10500 Standard</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:var(--radius-md); border-left:4px solid #8b5cf6;">
+            <div style="font-size:0.72rem; color:var(--text-muted);">PILLAR 3</div>
+            <strong style="font-size:0.9rem;">Supply Regularity</strong>
+            <div style="font-size:1.2rem; font-weight:800; color:#c084fc; margin:4px 0;">348 Days / Yr</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">National Standard: >= 300 days</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:var(--radius-md); border-left:4px solid #f59e0b;">
+            <div style="font-size:0.72rem; color:var(--text-muted);">PILLAR 4</div>
+            <strong style="font-size:0.9rem;">Community O&M</strong>
+            <div style="font-size:1.2rem; font-weight:800; color:#fbbf24; margin:4px 0;">92% Tariff Rec.</div>
+            <div style="font-size:0.74rem; color:var(--text-secondary);">Active VWSC Committee Fund</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMIS Connection Metrics -->
+      <div class="grid-cols-4">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Gateway Status</span>
+            <span class="badge badge-success">Connected</span>
+          </div>
+          <div style="font-weight:700; font-size:0.85rem; font-family:monospace; color:var(--water-electric);" id="imisEndpointText">
+            ejalshakti.gov.in/imis/api/v2
+          </div>
+          <div class="kpi-subtext">OAuth2 Security Token Verified</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Gateway Node ID</span>
+            <span class="badge badge-info">Verified</span>
+          </div>
+          <div style="font-weight:800; font-size:1.4rem; font-family:monospace;" id="imisGatewayId">
+            JJM-IN-GW-0491
+          </div>
+          <div class="kpi-subtext">State Water & Sanitation Mission Node</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Last Successful Sync</span>
+            <span class="pulse-dot"></span>
+          </div>
+          <div style="font-weight:800; font-size:1.4rem;" id="imisLastSyncText">
+            08:50:00 IST
+          </div>
+          <div class="kpi-subtext">Automated 15-minute sync schedule</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Total Batches Synced</span>
+            <span class="badge badge-success">100% OK</span>
+          </div>
+          <div style="font-weight:800; font-size:1.4rem;" id="imisTotalBatches">
+            4,812
+          </div>
+          <div class="kpi-subtext">0 dropped transactions recorded</div>
+        </div>
+      </div>
+
+      <!-- Sujal Gaon Har Ghar Jal Registry Table -->
+      <div class="glass-card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-icon">🏅</span>
+            <span>Sujal Gaon (Certified Har Ghar Jal Villages) Verification Ledger</span>
+          </div>
+          <span class="badge badge-success">Continuous 100% Functionality Validation</span>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Sujal Gaon ID</th>
+                <th>Village & Gram Panchayat</th>
+                <th>Working Taps Count</th>
+                <th>Har Ghar Jal Status</th>
+                <th>Audit Agency</th>
+                <th>Sync Status</th>
+              </tr>
+            </thead>
+            <tbody id="sujalGaonTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- JSON Payload & Transaction Logs -->
+      <div class="grid-cols-2">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">💻</span>
+              <span>National Gateway Payload Inspector</span>
+            </div>
+            <span class="badge badge-info">Schema Validated</span>
+          </div>
+          <pre id="imisJsonPayloadViewer" style="background:#030712; padding:12px; border-radius:var(--radius-md); font-family:monospace; font-size:0.75rem; color:#38bdf8; max-height:260px; overflow-y:auto; border:1px solid rgba(56,189,248,0.2);"></pre>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-title-icon">📜</span>
+              <span>Recent Transaction Logs</span>
+            </div>
+          </div>
+          <div id="imisRecentLogsContainer" style="max-height:260px; overflow-y:auto;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       DRAWER BACKDROP & FHTC INSPECTOR SLIDEOUT DRAWER
+       ========================================================================= -->
+  <div id="drawerBackdrop" class="drawer-backdrop" onclick="closeInspectorDrawer()"></div>
+
+  <aside id="inspectorDrawer" class="inspector-drawer">
+    <div class="drawer-header">
+      <div style="font-weight:700; font-size:1.05rem; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+        <span>🔍 Tap Connection Telemetry</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="closeInspectorDrawer()">✕ Close</button>
+    </div>
+    <div class="drawer-body" id="inspectorDrawerContent">
+      <!-- Populated dynamically by inspectFhtc() -->
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       DISASTER & CHAOS SCENARIO LAB MODAL
+       ========================================================================= -->
+  <div class="modal-overlay" id="chaosModalOverlay" onclick="if(event.target === this) closeChaosModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div style="font-weight:800; font-size:1.1rem; color:#fca5a5; display:flex; align-items:center; gap:8px;">
+          <span>⚡ Disaster & Incident Simulation Lab</span>
+        </div>
+        <button style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.2rem;" onclick="closeChaosModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:14px;">
+          Test how the AI algorithms, map warnings, and field dispatchers react when real-world disruptions strike the village:
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Scenario 1: Main Pipeline Burst -->
+          <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:var(--radius-md); padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="font-weight:700; color:#fca5a5; font-size:0.92rem;">
+                  1. Simulate Pipeline Burst (Sector 4)
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:2px;">
+                  Simulates rapid pressure drop. AI pinpoints rupture at chainage 340m in 1.2s and issues emergency repair order.
+                </div>
+              </div>
+              <button id="chaosTriggerBurst" class="btn btn-danger btn-sm" onclick="closeChaosModal()">
+                Trigger Burst
+              </button>
+            </div>
+          </div>
+
+          <!-- Scenario 2: Chlorine Drop -->
+          <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-md); padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="font-weight:700; color:#fbbf24; font-size:0.92rem;">
+                  2. Simulate Chlorine Drop (< 0.10 mg/L)
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:2px;">
+                  Simulates chlorine decay below safe 0.2 ppm threshold, triggering water quality warning.
+                </div>
+              </div>
+              <button id="chaosTriggerChlorine" class="btn btn-secondary btn-sm" onclick="closeChaosModal()">
+                Simulate Drop
+              </button>
+            </div>
+          </div>
+
+          <!-- Scenario 3: Restore Normal -->
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:var(--radius-md); padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="font-weight:700; color:#6ee7b7; font-size:0.92rem;">
+                  3. Restore Normal Healthy Grid
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:2px;">
+                  Clears simulated incidents, returns water pressure to normal, and sets all taps back to healthy green.
+                </div>
+              </div>
+              <button id="chaosTriggerReset" class="btn btn-primary btn-sm" onclick="closeChaosModal()">
+                Reset Normal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="closeChaosModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       HAR GHAR JAL DIGITAL CERTIFICATE MODAL
+       ========================================================================= -->
+  <div class="modal-overlay" id="certificateModalOverlay" onclick="if(event.target === this) window.CertificateModal.close()">
+    <div class="modal-box" style="max-width:780px;">
+      <div class="modal-header">
+        <div style="font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+          <span>🏅</span>
+          <span>Official Har Ghar Jal Certified Sujal Gaon Certificate</span>
+        </div>
+        <button style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.2rem;" onclick="window.CertificateModal.close()">✕</button>
+      </div>
+      <div class="modal-body" id="certificateContainer">
+        <!-- Rendered by certificate-modal.js -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="window.CertificateModal.close()">Close</button>
+        <button class="btn btn-primary btn-sm" onclick="window.CertificateModal.printCertificate()">🖨️ Print / Save PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ROLE SELECTION MODAL
+       ========================================================================= -->
+  <div class="modal-overlay" id="roleModalOverlay" onclick="if(event.target === this) closeRoleModal()">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <div style="font-weight:700; font-size:1.05rem;">Select Your Role</div>
+        <button style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.2rem;" onclick="closeRoleModal()">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:10px;">
+        <button class="btn btn-secondary" style="justify-content:flex-start;" onclick="setRole('executive'); closeRoleModal();">
+          🏛️ <strong>National / State Executive</strong>
+        </button>
+        <button class="btn btn-secondary" style="justify-content:flex-start;" onclick="setRole('engineer'); closeRoleModal();">
+          🔧 <strong>District / Block Water Engineer</strong>
+        </button>
+        <button class="btn btn-secondary" style="justify-content:flex-start;" onclick="setRole('vwsc'); closeRoleModal();">
+          🏘️ <strong>Gram Panchayat, Sarpanch & Jal Sahiya</strong>
+        </button>
+        <button class="btn btn-primary" style="justify-content:flex-start;" onclick="setRole('citizen'); closeRoleModal();">
+          📱 <strong>Village Citizen (Jal Samvad)</strong>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       LOCATION PICKER MODAL
+       ========================================================================= -->
+  <div class="modal-overlay" id="locationModalOverlay" onclick="if(event.target === this) closeLocationModal()">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-header">
+        <div style="font-weight:700; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+          <span>📍</span>
+          <span>Select Gram Panchayat</span>
+        </div>
+        <button style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.2rem;" onclick="closeLocationModal()">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="form-group">
+          <label class="form-label">State (राज्य)</label>
+          <select class="form-select" id="hierarchyState" onchange="updateLocationSelection()">
+            <option value="RJ" selected>Rajasthan (राजस्थान)</option>
+            <option value="UP">Uttar Pradesh (उत्तर प्रदेश)</option>
+            <option value="MH">Maharashtra (महाराष्ट्र)</option>
+            <option value="AS">Assam (असम)</option>
+            <option value="GJ">Gujarat (गुजरात)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">District (ज़िला)</label>
+          <select class="form-select" id="hierarchyDistrict" onchange="updateLocationSelection()">
+            <option value="JAI" selected>Jaipur District (जयपुर)</option>
+            <option value="VAR">Varanasi District (वाराणसी)</option>
+            <option value="PUN">Pune District (पुणे)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gram Panchayat & Village</label>
+          <select class="form-select" id="hierarchyGP" onchange="updateLocationSelection()">
+            <option value="GP-RJ-JAI-01" selected>Rampur Gram Panchayat (SG-1042)</option>
+            <option value="GP-UP-VAR-04">Chandrapur Gram Panchayat (SG-3081)</option>
+            <option value="GP-MH-PUN-02">Sundarpur Gram Panchayat (SG-4099)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeLocationModal(); showToast('Switched focus to: Rampur Gram Panchayat (SG-1042)', 'success');">
+          Confirm Village
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       FLOATING JAL-DOOT AI ASSISTANT BUTTON & DRAWER
+       ========================================================================= -->
+  <button id="jalDootFabBtn" class="jal-doot-fab" onclick="window.JalDootAI && window.JalDootAI.toggle()" title="Talk to AI Jal-Doot (जल-दूत)">
+    <span class="jal-doot-fab-icon">🤖</span>
+    <span>Jal-Doot AI (जल-दूत)</span>
+  </button>
+
+  <div id="jalDootBackdrop" class="drawer-backdrop" onclick="window.JalDootAI && window.JalDootAI.toggle()"></div>
+
+  <aside id="jalDootDrawer" class="jal-doot-drawer">
+    <div class="jal-doot-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.3rem;">🤖</span>
+        <div>
+          <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">Jal-Doot AI Assistant</div>
+          <div style="font-size:0.72rem; color:var(--water-cyan);">जलदृष्टि ग्रामीण जल सहायक (Bilingual AI)</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="window.JalDootAI && window.JalDootAI.toggle()" style="padding:2px 8px;">✕</button>
+    </div>
+
+    <!-- Quick query prompt chips -->
+    <div class="jal-doot-quick-chips">
+      <button class="quick-chip" onclick="window.JalDootAI.send('आज पानी का क्या हाल है?')">💧 पानी का हाल</button>
+      <button class="quick-chip" onclick="window.JalDootAI.send('क्या पानी पीने लायक शुद्ध है?')">🧪 पानी की शुद्धता</button>
+      <button class="quick-chip" onclick="window.JalDootAI.send('क्या कहीं पाइप लीकेज है?')">🚨 लीकेज की स्थिति</button>
+      <button class="quick-chip" onclick="window.JalDootAI.send('सोलर पंप से आज कितनी बचत हुई?')">☀️ सोलर बचत</button>
+      <button class="quick-chip" onclick="window.JalDootAI.send('हर घर जल प्रमाण पत्र दिखाएं')">🏅 सुजल गांव सर्टिफिकेट</button>
+    </div>
+
+    <div id="jalDootChatMessages" class="jal-doot-messages">
+      <div class="jal-doot-msg msg-bot">
+        <div class="msg-bubble">
+          नमस्ते! मैं <strong>जल-दूत (Jal-Doot)</strong> हूँ, आपका एआई ग्रामीण जल सहायक। मुझसे रामपुर के जल वितरण, पानी की शुद्धता, सोलर बचत या पाइपलाइनों के बारे में बोलकर या लिखकर पूछें।
+        </div>
+        <div class="msg-time">Just now</div>
+      </div>
+    </div>
+
+    <div class="jal-doot-footer">
+      <button id="jalDootMicBtn" class="btn-mic-round" onclick="window.JalDootAI.toggleSpeech()" title="Click to Speak (बोलकर पूछें)">
+        🎤
+      </button>
+      <input type="text" id="jalDootInput" class="form-input" style="flex:1; padding:8px 12px; font-size:0.84rem;" placeholder="समस्या या प्रश्न लिखें (Type query)..." onkeydown="if(event.key === 'Enter') window.JalDootAI.send()">
+      <button class="btn btn-primary btn-sm" onclick="window.JalDootAI.send()" style="padding:8px 14px;">
+        ➤
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       GLOBAL SPOTLIGHT COMMAND PALETTE (Ctrl+K)
+       ========================================================================= -->
+  <div id="commandPaletteModal" class="command-palette-overlay" onclick="if(event.target === this) window.CommandPalette.close()">
+    <div class="command-palette-box">
+      <div class="command-palette-search">
+        <span style="font-size:1.1rem; color:var(--water-electric);">🔍</span>
+        <input type="text" id="commandPaletteInput" class="command-palette-input" placeholder="Type a command, tap name (e.g. Ramesh), or feature..." oninput="window.CommandPalette.renderResults(this.value)" onkeydown="window.CommandPalette.handleKeydown(event)">
+        <span class="cmd-kbd-shortcut">ESC to close</span>
+      </div>
+      <div id="commandPaletteList" class="command-palette-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- External JS Dependencies -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- JalDrishti Application Scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/telemetry-stream.js"></script>
+  <script src="js/gis-map.js"></script>
+  <script src="js/ai-engine.js"></script>
+  <script src="js/wave-oscilloscope.js"></script>
+  <script src="js/solar-grid.js"></script>
+  <script src="js/valve-matrix.js"></script>
+  <script src="js/citizen-portal.js"></script>
+  <script src="js/community-broadcast.js"></script>
+  <script src="js/imis-sync.js"></script>
+  <script src="js/chaos-simulator.js"></script>
+  <script src="js/certificate-modal.js"></script>
+  <script src="js/jal-doot-ai.js"></script>
+  <script src="js/command-palette.js"></script>
+  <script src="js/water-balance.js"></script>
+  <script src="js/weather-demand.js"></script>
+  <script src="js/iot-topology.js"></script>
+  <script src="js/community-stewardship.js"></script>
+
+  <script>
+    function openChaosModal() {
+      document.getElementById('chaosModalOverlay').classList.add('active');
+    }
+    function closeChaosModal() {
+      document.getElementById('chaosModalOverlay').classList.remove('active');
+    }
+    function switchRoleModal() {
+      document.getElementById('roleModalOverlay').classList.add('active');
+    }
+    function closeRoleModal() {
+      document.getElementById('roleModalOverlay').classList.remove('active');
+    }
+
+    // Initialize newly added modules on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.CommandPalette) window.CommandPalette.init();
+      if (window.WaterBalance) window.WaterBalance.init();
+      if (window.WeatherDemand) window.WeatherDemand.init();
+      if (window.IotTopology) window.IotTopology.init();
+      if (window.CommunityStewardship) window.CommunityStewardship.init();
+    });
+  </script>
+</body>
+</html>

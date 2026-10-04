@@ -1,0 +1,84 @@
+{
+  "imisConfig": {
+    "endpoint": "https://ejalshakti.gov.in/imis/api/v2/telemetry/fhtc-sync",
+    "gatewayId": "JJM-IN-GW-0491",
+    "authStatus": "Connected (Bearer JWT Token Active)",
+    "syncFrequencyMinutes": 15,
+    "lastSuccessfulSync": "2026-10-04T08:50:00+05:30",
+    "totalBatchesProcessed": 4812,
+    "successRate": 99.8
+  },
+  "sujalGaonRegistry": [
+    {
+      "village": "Rampur",
+      "sujalGaonId": "SG-RJ-JAI-1042",
+      "gramPanchayat": "Rampur GP",
+      "district": "Jaipur",
+      "state": "Rajasthan",
+      "targetHouseholds": 340,
+      "functionalFHTCs": 328,
+      "functionalityRate": 96.5,
+      "harGharJalStatus": "Certified",
+      "lastAuditDate": "2025-11-15",
+      "gramSabhaResolutionUploaded": true,
+      "thirdPartyAuditAgency": "Quality Council of India (QCI)",
+      "syncState": "Synchronized"
+    },
+    {
+      "village": "Chandrapur",
+      "sujalGaonId": "SG-UP-VAR-3081",
+      "gramPanchayat": "Chandrapur GP",
+      "district": "Varanasi",
+      "state": "Uttar Pradesh",
+      "targetHouseholds": 420,
+      "functionalFHTCs": 412,
+      "functionalityRate": 98.1,
+      "harGharJalStatus": "Certified",
+      "lastAuditDate": "2025-08-20",
+      "gramSabhaResolutionUploaded": true,
+      "thirdPartyAuditAgency": "WAPCOS Ltd.",
+      "syncState": "Synchronized"
+    },
+    {
+      "village": "Sundarpur",
+      "sujalGaonId": "SG-MH-PUN-4099",
+      "gramPanchayat": "Sundarpur GP",
+      "district": "Pune",
+      "state": "Maharashtra",
+      "targetHouseholds": 290,
+      "functionalFHTCs": 272,
+      "functionalityRate": 93.8,
+      "harGharJalStatus": "Pending Re-audit (Threshold >= 95%)",
+      "lastAuditDate": "2026-02-10",
+      "gramSabhaResolutionUploaded": true,
+      "thirdPartyAuditAgency": "National Institute of Hydrology",
+      "syncState": "Action Required"
+    }
+  ],
+  "recentSyncLogs": [
+    {
+      "batchId": "BATCH-20261004-0850",
+      "timestamp": "2026-10-04T08:50:00+05:30",
+      "recordsCount": 1050,
+      "status": "SUCCESS (HTTP 200)",
+      "latencyMs": 342,
+      "payloadSummary": "Synced 1050 FHTCs, 4 scheme telemetry streams, 2 active alerts, 1 resolved grievance"
+    },
+    {
+      "batchId": "BATCH-20261004-0835",
+      "timestamp": "2026-10-04T08:35:00+05:30",
+      "recordsCount": 1050,
+      "status": "SUCCESS (HTTP 200)",
+      "latencyMs": 380,
+      "payloadSummary": "Synced 1050 FHTCs, 4 scheme telemetry streams, 0 alerts"
+    },
+    {
+      "batchId": "BATCH-20261004-0820",
+      "timestamp": "2026-10-04T08:20:00+05:30",
+      "recordsCount": 1050,
+      "status": "SUCCESS (HTTP 200)",
+      "latencyMs": 315,
+      "payloadSummary": "Synced 1050 FHTCs, morning supply cycle closure summary"
+    }
+  ]
+}
