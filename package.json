@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "echo 'Static frontend — no build step required'"
+  },
+  "engines": {
+    "node": ">=18.x"
   },
   "keywords": [
     "jal-jeevan-mission",
